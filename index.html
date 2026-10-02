@@ -1,0 +1,862 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Fuga · A2 第5单元 闪卡</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: #e8edf2;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 16px;
+        }
+
+        .phone-frame {
+            width: 390px;
+            max-width: 100%;
+            background: #f4f9f7;
+            overflow: hidden;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            height: 844px;
+            max-height: 100vh;
+            border-radius: 32px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.08);
+        }
+
+        .pages-container {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding: 8px 20px 20px 20px;
+            scroll-behavior: smooth;
+            -webkit-overflow-scrolling: touch;
+        }
+        .pages-container::-webkit-scrollbar {
+            width: 0;
+            display: none;
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0 4px;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+        }
+        .page-header h1 {
+            font-size: 20px;
+            font-weight: 700;
+            color: #2c3e50;
+            letter-spacing: -0.3px;
+        }
+        .page-header h1 span {
+            color: #4a9e8e;
+        }
+        .page-header .sub {
+            font-size: 14px;
+            color: #7f8c8d;
+            font-weight: 400;
+            background: #eef2f6;
+            padding: 4px 14px;
+            border-radius: 20px;
+        }
+
+        .mode-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 18px;
+            flex-wrap: wrap;
+        }
+        .mode-tab {
+            flex: 1;
+            min-width: 80px;
+            padding: 10px 0;
+            border: 2px solid #d5dce4;
+            border-radius: 30px;
+            background: #fff;
+            font-size: 13px;
+            font-weight: 600;
+            color: #2c3e50;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: inherit;
+            text-align: center;
+        }
+        .mode-tab.active {
+            background: #4a9e8e;
+            border-color: #4a9e8e;
+            color: #fff;
+            box-shadow: 0 4px 12px rgba(74, 158, 142, 0.25);
+        }
+        .mode-tab i {
+            margin-right: 4px;
+        }
+
+        .card-counter {
+            text-align: center;
+            font-size: 14px;
+            color: #7f8c8d;
+            margin-bottom: 12px;
+            font-weight: 500;
+        }
+        .card-counter strong {
+            color: #2c3e50;
+            font-size: 18px;
+        }
+
+        .flashcard {
+            background: #ffffff;
+            border-radius: 32px;
+            padding: 32px 24px 24px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.06);
+            border: 1px solid rgba(200, 212, 220, 0.25);
+            min-height: 220px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.15s, box-shadow 0.2s;
+            position: relative;
+        }
+        .flashcard:active {
+            transform: scale(0.98);
+        }
+
+        .flashcard .card-front {
+            width: 100%;
+        }
+        .flashcard .card-front .main-word {
+            font-size: 34px;
+            font-weight: 700;
+            color: #2c3e50;
+            line-height: 1.3;
+            letter-spacing: -0.3px;
+            word-break: break-word;
+        }
+        .flashcard .card-front .main-word.chinese-mode {
+            font-size: 26px;
+            color: #2c3e50;
+        }
+        .flashcard .card-front .main-word.small-word {
+            font-size: 24px;
+        }
+        .flashcard .card-front .main-word.small-word.chinese-mode {
+            font-size: 20px;
+        }
+
+        .flashcard .card-back {
+            width: 100%;
+            display: none;
+            animation: fadeUp 0.25s ease;
+        }
+        .flashcard .card-back .meaning {
+            font-size: 34px;
+            font-weight: 700;
+            color: #4a9e8e;
+            line-height: 1.4;
+        }
+        .flashcard .card-back .meaning.chinese-mode {
+            font-size: 26px;
+            color: #4a9e8e;
+        }
+        .flashcard .card-back .meaning.italian-mode {
+            font-size: 34px;
+            font-weight: 700;
+            color: #4a9e8e;
+        }
+        .flashcard .card-back .meaning.small-meaning {
+            font-size: 24px;
+        }
+        .flashcard .card-back .meaning.small-meaning.chinese-mode {
+            font-size: 20px;
+        }
+        .flashcard .card-back .meaning.small-meaning.italian-mode {
+            font-size: 24px;
+        }
+
+        .flashcard.show-back .card-front {
+            display: none;
+        }
+        .flashcard.show-back .card-back {
+            display: block;
+        }
+
+        .flashcard .hint-tap {
+            position: absolute;
+            bottom: 12px;
+            right: 18px;
+            font-size: 12px;
+            color: #bccbd8;
+            letter-spacing: 0.5px;
+        }
+        .flashcard .hint-tap i {
+            margin-right: 4px;
+        }
+
+        .audio-btn {
+            position: absolute;
+            bottom: 12px;
+            left: 18px;
+            background: rgba(74, 158, 142, 0.12);
+            border: none;
+            border-radius: 30px;
+            padding: 6px 14px 6px 10px;
+            font-size: 13px;
+            color: #4a9e8e;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-family: inherit;
+            transition: 0.2s;
+            backdrop-filter: blur(2px);
+        }
+        .audio-btn:hover {
+            background: rgba(74, 158, 142, 0.2);
+        }
+        .audio-btn:active {
+            transform: scale(0.92);
+        }
+        .audio-btn i {
+            font-size: 15px;
+        }
+        .audio-btn .status-dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #4a9e8e;
+            transition: 0.2s;
+        }
+        .audio-btn .status-dot.playing {
+            background: #e67e22;
+            animation: pulse-dot 0.8s infinite;
+        }
+        @keyframes pulse-dot {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.5); opacity: 0.6; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .nav-row {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+        }
+        .nav-row button {
+            flex: 1;
+            padding: 14px 0;
+            border: none;
+            border-radius: 18px;
+            background: #e8f0ee;
+            color: #4a9e8e;
+            font-weight: 600;
+            font-size: 15px;
+            cursor: pointer;
+            font-family: inherit;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        .nav-row button:active {
+            transform: scale(0.95);
+        }
+        .nav-row button.primary {
+            background: #4a9e8e;
+            color: #fff;
+        }
+        .nav-row button.primary:active {
+            background: #3a7a6e;
+        }
+        .nav-row button:disabled {
+            opacity: 0.4;
+            pointer-events: none;
+        }
+
+        .bottom-meta {
+            margin-top: 16px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+            color: #a0b4c4;
+            padding: 0 4px;
+        }
+        .bottom-meta .progress-text {
+            background: #eef2f6;
+            padding: 4px 16px;
+            border-radius: 30px;
+            color: #2c3e50;
+            font-weight: 500;
+        }
+
+        .footer-copyright {
+            margin-top: 20px;
+            padding: 16px 12px 8px 12px;
+            border-top: 1px solid #e0e8ee;
+            text-align: center;
+            font-size: 12px;
+            color: #9aabb8;
+            line-height: 1.8;
+            letter-spacing: 0.3px;
+        }
+        .footer-copyright .brand {
+            font-weight: 600;
+            color: #4a9e8e;
+            letter-spacing: 0.5px;
+        }
+        .footer-copyright .wechat {
+            color: #7f8c8d;
+            font-family: 'Courier New', monospace;
+            font-weight: 500;
+            background: #f0f4f8;
+            padding: 2px 10px;
+            border-radius: 12px;
+            display: inline-block;
+            margin-top: 2px;
+        }
+
+        @keyframes fadeUp {
+            0% {
+                opacity: 0;
+                transform: translateY(8px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (max-width: 420px) {
+            .phone-frame {
+                width: 100%;
+                height: 100vh;
+                max-height: 100vh;
+                border-radius: 0;
+                padding: 0;
+            }
+            body {
+                padding: 0;
+                background: #f4f9f7;
+            }
+            .pages-container {
+                padding: 8px 16px 20px 16px;
+            }
+            .flashcard {
+                padding: 24px 18px;
+                min-height: 180px;
+            }
+            .flashcard .card-front .main-word {
+                font-size: 28px;
+            }
+            .flashcard .card-front .main-word.chinese-mode {
+                font-size: 22px;
+            }
+            .flashcard .card-front .main-word.small-word {
+                font-size: 20px;
+            }
+            .flashcard .card-front .main-word.small-word.chinese-mode {
+                font-size: 18px;
+            }
+            .flashcard .card-back .meaning {
+                font-size: 28px;
+            }
+            .flashcard .card-back .meaning.chinese-mode {
+                font-size: 22px;
+            }
+            .flashcard .card-back .meaning.italian-mode {
+                font-size: 28px;
+            }
+            .flashcard .card-back .meaning.small-meaning {
+                font-size: 20px;
+            }
+            .flashcard .card-back .meaning.small-meaning.chinese-mode {
+                font-size: 18px;
+            }
+            .flashcard .card-back .meaning.small-meaning.italian-mode {
+                font-size: 20px;
+            }
+            .audio-btn {
+                font-size: 12px;
+                padding: 4px 12px 4px 8px;
+                bottom: 10px;
+                left: 12px;
+            }
+            .footer-copyright {
+                font-size: 11px;
+                padding: 12px 8px 6px 8px;
+            }
+        }
+
+        @media (max-width: 380px) {
+            .mode-tab {
+                font-size: 12px;
+                min-width: 60px;
+                padding: 8px 0;
+            }
+            .flashcard .card-front .main-word {
+                font-size: 24px;
+            }
+            .flashcard .card-front .main-word.chinese-mode {
+                font-size: 20px;
+            }
+            .flashcard .card-front .main-word.small-word {
+                font-size: 18px;
+            }
+            .flashcard .card-back .meaning {
+                font-size: 24px;
+            }
+            .flashcard .card-back .meaning.chinese-mode {
+                font-size: 20px;
+            }
+            .flashcard .card-back .meaning.italian-mode {
+                font-size: 24px;
+            }
+            .flashcard .card-back .meaning.small-meaning {
+                font-size: 18px;
+            }
+            .nav-row button {
+                font-size: 13px;
+                padding: 12px 0;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="phone-frame">
+        <div class="pages-container" id="pagesContainer">
+            <div class="page-header">
+                <h1>✨ <span>Fuga</span> 学员专属</h1>
+                <span class="sub"><i class="fas fa-book-open"></i> A2 第5单元</span>
+            </div>
+
+            <div class="mode-tabs" id="modeTabs">
+                <button class="mode-tab active" data-mode="order"><i class="fas fa-list"></i> 顺序</button>
+                <button class="mode-tab" data-mode="shuffle"><i class="fas fa-random"></i> 乱序</button>
+                <button class="mode-tab" data-mode="chinese"><i class="fas fa-language"></i> 反推</button>
+            </div>
+
+            <div class="card-counter">
+                第 <strong id="currentNum">1</strong> / <span id="totalNum">0</span> 张
+            </div>
+
+            <div class="flashcard" id="flashcard">
+                <div class="card-front" id="cardFront">
+                    <div class="main-word" id="mainWord">opzione</div>
+                </div>
+                <div class="card-back" id="cardBack">
+                    <div class="meaning" id="meaningBack">选择；选择权</div>
+                </div>
+                <div class="hint-tap"><i class="fas fa-hand-pointer"></i> 点击翻转</div>
+                <button class="audio-btn" id="audioBtn" title="播放单词发音">
+                    <i class="fas fa-volume-up"></i>
+                    <span id="audioLabel">发音</span>
+                    <span class="status-dot" id="audioDot"></span>
+                </button>
+            </div>
+
+            <div class="nav-row">
+                <button id="prevBtn"><i class="fas fa-arrow-left"></i> 上一张</button>
+                <button class="primary" id="nextBtn">下一张 <i class="fas fa-arrow-right"></i></button>
+            </div>
+
+            <div class="bottom-meta">
+                <span>✅ 已学 <span id="learnedCount">0</span></span>
+                <span class="progress-text" id="progressText">0%</span>
+            </div>
+
+            <div class="footer-copyright">
+                <div class="brand">口袋意语 · Fuga意大利语工作室</div>
+                <div style="font-size: 11px; color: #b0c4d0;">内部学习资料 · 未经授权不得转载、商用</div>
+                <div style="margin-top: 4px;">
+                    <span class="wechat"><i class="fab fa-weixin" style="margin-right: 4px; color: #4a9e8e;"></i> FCFCFCZXFC</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============================================================
+        // A2 第5单元 完整词表 (已去除所有词性标注)
+        // ============================================================
+        const RAW_WORDS = [
+            { word: 'opzione', meaning: '选择；选择权' },
+            { word: 'colpevole', meaning: '有错的，有罪的；犯错误的人，罪犯' },
+            { word: 'cantante', meaning: '歌手；歌唱家' },
+            { word: 'canzone', meaning: '歌曲' },
+            { word: 'festival', meaning: '（音乐）节' },
+            { word: 'pop', meaning: '流行音乐' },
+            { word: 'rock', meaning: '摇滚' },
+            { word: 'rap', meaning: '说唱' },
+            { word: 'jazz', meaning: '爵士' },
+            { word: 'blues', meaning: '蓝调' },
+            { word: 'classica', meaning: '古典（音乐）' },
+            { word: 'funky', meaning: '放克' },
+            { word: 'sparire', meaning: '消失' },
+            { word: 'intervista', meaning: '采访，访谈' },
+            { word: 'fare un’intervista a …', meaning: '给……做采访' },
+            { word: 'produttore musicale', meaning: '音乐制作人' },
+            { word: 'preoccuparsi', meaning: '担心' },
+            { word: 'esperto', meaning: '专家，行家' },
+            { word: 'effettivamente', meaning: '实际上，事实上' },
+            { word: 'successo', meaning: '成功' },
+            { word: 'simile', meaning: '相似的' },
+            { word: 'star', meaning: '明星' },
+            { word: 'mi piacerebbe', meaning: '我想' },
+            { word: 'tendenza', meaning: '倾向，偏向；趋势，潮流' },
+            { word: 'moda', meaning: '风尚' },
+            { word: 'spontaneo', meaning: '自发的；本能的' },
+            { word: 'prepararsi', meaning: '准备' },
+            { word: 'vincitrice', meaning: '（女）胜利者，（女）获胜者' },
+            { word: 'opinione', meaning: '意见，想法；观点' },
+            { word: 'assistente', meaning: '助手' },
+            { word: 'al posto tuo', meaning: '换做是我' },
+            { word: 'applicazione', meaning: '应用程序；应用软件' },
+            { word: 'sincero', meaning: '诚实的；诚挚的' },
+            { word: 'ad essere sincero', meaning: '坦白说' },
+            { word: 'essere appassionato di ...', meaning: '热衷于（热爱）……' },
+            { word: 'suggerimento', meaning: '建议' },
+            { word: 'manifestazione', meaning: '演出，表演；游行' },
+            { word: 'esibirsi', meaning: '表演，演出' },
+            { word: 'riportare', meaning: '转述' },
+            { word: 'realizzabile', meaning: '可以实现的' },
+            { word: 'gentilmente', meaning: '礼貌地；委婉地' },
+            { word: 'passante', meaning: '路人；行人' },
+            { word: 'coinvolgere', meaning: '卷入' },
+            { word: 'da un momento all’altro', meaning: '随时' },
+            { word: 'scandalo', meaning: '丑闻' },
+            { word: 'ministro', meaning: '部长' },
+            { word: 'presidente', meaning: '总统' },
+            { word: 'Repubblica', meaning: '共和国' },
+            { word: 'mettersi d’accordo con …', meaning: '和……达成一致（商量好）' },
+            { word: 'puntuale', meaning: '准时的；守时的' },
+            { word: 'provare di tutto', meaning: '试过所有方法' },
+            { word: 'evidentemente', meaning: '明显地；显然' },
+            { word: 'guasto', meaning: '过错；故障' },
+            { word: 'in diretta', meaning: '现场直播，实况转播' },
+            { word: 'connessione', meaning: '网络连接；网速' },
+            { word: 'lento', meaning: '慢的' },
+            { word: 'trasloco', meaning: '搬家，迁居' },
+            { word: 'sottosopra', meaning: '上下颠倒；混乱，乱七八糟' },
+            { word: 'riuscire a …', meaning: '成功地……' },
+            { word: 'al ritorno', meaning: '在回来的路上' },
+            { word: 'sfortunato', meaning: '不幸的；糟糕的' },
+            { word: 'lasciare stare', meaning: '随它去吧；别说了' },
+            { word: 'sala', meaning: '剧场厅，放映厅；演出厅' },
+            { word: 'esaurito', meaning: '卖光的，售罄的' },
+            { word: 'mettere da parte', meaning: '存下（钱），储蓄' },
+            { word: 'playstation', meaning: '电子游戏机' },
+            { word: 'altrimenti', meaning: '否则' },
+            { word: 'microfono', meaning: '麦克风；扩音器' },
+            { word: 'batteria', meaning: '鼓；打击乐器；电池' },
+            { word: 'cuffie', meaning: '耳机' },
+            { word: 'tastiera', meaning: '键盘' },
+            { word: 'fare una tournée', meaning: '巡演' },
+            { word: 'comporre', meaning: '创作；作词，作曲' },
+            { word: 'testo', meaning: '歌词' },
+            { word: 'indagine', meaning: '调查，研究' },
+            { word: 'occasione', meaning: '场合' },
+            { word: 'individuare', meaning: '识别；认出' },
+            { word: 'abbonamento', meaning: '订阅' },
+            { word: 'annuale', meaning: '每年的，年度的' },
+            { word: 'deserto', meaning: '沙漠' },
+            { word: 'tenda', meaning: '帐篷' },
+            { word: 'su due piedi', meaning: '突然地' },
+            { word: 'mente', meaning: '头脑；思想' },
+            { word: 'sopportare', meaning: '忍受，承受' },
+            { word: 'scorpione', meaning: '蝎子' },
+            { word: 'dappertutto', meaning: '到处' },
+            { word: 'flessibile', meaning: '灵活的' },
+            { word: 'cattivo', meaning: '坏的' },
+            { word: 'fare una proposta', meaning: '提议' },
+            { word: 'fare un’ipotesi', meaning: '做出假设' },
+            { word: 'asilo nido', meaning: '幼儿园' },
+            { word: 'anziché', meaning: '与其……' },
+            { word: 'ingrandire', meaning: '放大；扩大' },
+            { word: 'mettere a disposizione', meaning: '提供' },
+            { word: 'pista ciclabile', meaning: '自行车道' },
+            { word: 'investire', meaning: '投资' },
+            { word: 'costruzione', meaning: '建造' },
+            { word: 'abitazione', meaning: '住宅；居住' },
+            { word: 'targa', meaning: '车牌' },
+            { word: 'alterno', meaning: '交替的；轮流的' },
+            { word: 'clinica', meaning: '诊所' }
+        ];
+
+        console.log('✅ A2 第5单元 总词条数:', RAW_WORDS.length);
+
+        // ============================================================
+        // 状态
+        // ============================================================
+        let mode = 'order';
+        let currentIndex = 0;
+        let currentList = [];
+        let learnedSet = new Set();
+
+        let audioElement = null;
+        let isAudioPlaying = false;
+
+        // DOM
+        const flashcard = document.getElementById('flashcard');
+        const mainWord = document.getElementById('mainWord');
+        const meaningBack = document.getElementById('meaningBack');
+        const currentNum = document.getElementById('currentNum');
+        const totalNum = document.getElementById('totalNum');
+        const learnedCount = document.getElementById('learnedCount');
+        const progressText = document.getElementById('progressText');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const audioBtn = document.getElementById('audioBtn');
+        const audioLabel = document.getElementById('audioLabel');
+        const audioDot = document.getElementById('audioDot');
+
+        // ============================================================
+        // 工具
+        // ============================================================
+        function shuffleArray(arr) {
+            const a = [...arr];
+            for (let i = a.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [a[i], a[j]] = [a[j], a[i]];
+            }
+            return a;
+        }
+
+        function getDisplayList() {
+            if (mode === 'order') return [...RAW_WORDS];
+            if (mode === 'shuffle') return shuffleArray(RAW_WORDS);
+            if (mode === 'chinese') return [...RAW_WORDS];
+            return [...RAW_WORDS];
+        }
+
+        function isLongWord(text) {
+            return text && text.length > 22;
+        }
+
+        function getRawIndex(wordObj) {
+            return RAW_WORDS.findIndex(item =>
+                item.word === wordObj.word && item.meaning === wordObj.meaning
+            );
+        }
+
+        // ============================================================
+        // 音频 - 本地同文件夹，命名为：第5单元单词表 - segment N.mp3
+        // ============================================================
+        function getAudioPath(rawIndex) {
+            const segNum = rawIndex + 1;
+            return `第5单元单词表 - segment ${segNum}.mp3`;
+        }
+
+        function playAudio() {
+            const currentItem = currentList[currentIndex];
+            if (!currentItem) return;
+
+            const rawIndex = getRawIndex(currentItem);
+            if (rawIndex === -1) {
+                audioLabel.textContent = '未找到';
+                audioDot.className = 'status-dot';
+                setTimeout(() => { audioLabel.textContent = '发音'; }, 1000);
+                return;
+            }
+
+            const audioSrc = getAudioPath(rawIndex);
+            if (!audioElement) {
+                audioElement = new Audio();
+                audioElement.addEventListener('ended', () => {
+                    isAudioPlaying = false;
+                    audioDot.className = 'status-dot';
+                    audioLabel.textContent = '发音';
+                });
+                audioElement.addEventListener('error', () => {
+                    isAudioPlaying = false;
+                    audioDot.className = 'status-dot';
+                    audioLabel.textContent = '⚠️';
+                    setTimeout(() => { audioLabel.textContent = '发音'; }, 1200);
+                });
+            }
+
+            if (isAudioPlaying) {
+                audioElement.pause();
+                audioElement.currentTime = 0;
+                isAudioPlaying = false;
+                audioDot.className = 'status-dot';
+                audioLabel.textContent = '发音';
+                return;
+            }
+
+            audioElement.src = audioSrc;
+            audioElement.load();
+            audioElement.play().then(() => {
+                isAudioPlaying = true;
+                audioDot.className = 'status-dot playing';
+                audioLabel.textContent = '播放中';
+            }).catch((err) => {
+                console.warn('音频加载失败:', audioSrc, err);
+                audioDot.className = 'status-dot';
+                audioLabel.textContent = '⚠️';
+                setTimeout(() => { audioLabel.textContent = '发音'; }, 1000);
+                isAudioPlaying = false;
+            });
+        }
+
+        function stopAudio() {
+            if (audioElement) {
+                audioElement.pause();
+                audioElement.currentTime = 0;
+                isAudioPlaying = false;
+                audioDot.className = 'status-dot';
+                audioLabel.textContent = '发音';
+            }
+        }
+
+        // ============================================================
+        // 渲染
+        // ============================================================
+        function renderCard() {
+            if (!currentList.length) return;
+            const item = currentList[currentIndex];
+            const isChineseMode = (mode === 'chinese');
+
+            const wordIsLong = isLongWord(item.word);
+            const meaningIsLong = isLongWord(item.meaning);
+
+            if (isChineseMode) {
+                mainWord.textContent = item.meaning;
+                mainWord.className = 'main-word chinese-mode' + (meaningIsLong ? ' small-word' : '');
+            } else {
+                mainWord.textContent = item.word;
+                mainWord.className = 'main-word' + (wordIsLong ? ' small-word' : '');
+            }
+
+            if (isChineseMode) {
+                meaningBack.textContent = item.word;
+                meaningBack.className = 'meaning italian-mode' + (wordIsLong ? ' small-meaning' : '');
+            } else {
+                meaningBack.textContent = item.meaning;
+                meaningBack.className = 'meaning chinese-mode' + (meaningIsLong ? ' small-meaning' : '');
+            }
+
+            flashcard.classList.remove('show-back');
+
+            currentNum.textContent = currentIndex + 1;
+            totalNum.textContent = currentList.length;
+
+            learnedCount.textContent = learnedSet.size;
+            const progress = currentList.length ? Math.round((learnedSet.size / currentList.length) * 100) : 0;
+            progressText.textContent = progress + '%';
+
+            prevBtn.disabled = (currentIndex === 0);
+            nextBtn.disabled = (currentIndex === currentList.length - 1);
+
+            stopAudio();
+        }
+
+        // ============================================================
+        // 模式切换
+        // ============================================================
+        function switchMode(newMode) {
+            mode = newMode;
+            document.querySelectorAll('.mode-tab').forEach(tab => {
+                tab.classList.toggle('active', tab.dataset.mode === mode);
+            });
+            currentIndex = 0;
+            learnedSet = new Set();
+            currentList = getDisplayList();
+            renderCard();
+            stopAudio();
+        }
+
+        // ============================================================
+        // 导航
+        // ============================================================
+        function nextCard() {
+            if (currentIndex < currentList.length - 1) {
+                currentIndex++;
+                renderCard();
+            }
+        }
+
+        function prevCard() {
+            if (currentIndex > 0) {
+                currentIndex--;
+                renderCard();
+            }
+        }
+
+        // ============================================================
+        // 翻转 & 标记已学
+        // ============================================================
+        flashcard.addEventListener('click', function(e) {
+            if (e.target.closest('.audio-btn')) return;
+            this.classList.toggle('show-back');
+            if (this.classList.contains('show-back')) {
+                const key = currentIndex + '-' + (currentList[currentIndex]?.word || '');
+                learnedSet.add(key);
+                learnedCount.textContent = learnedSet.size;
+                const progress = currentList.length ? Math.round((learnedSet.size / currentList.length) * 100) : 0;
+                progressText.textContent = progress + '%';
+            }
+        });
+
+        // ============================================================
+        // 音频按钮
+        // ============================================================
+        audioBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            playAudio();
+        });
+
+        // ============================================================
+        // 初始化
+        // ============================================================
+        function init() {
+            document.querySelectorAll('.mode-tab').forEach(tab => {
+                tab.addEventListener('click', function() {
+                    switchMode(this.dataset.mode);
+                });
+            });
+
+            prevBtn.addEventListener('click', prevCard);
+            nextBtn.addEventListener('click', nextCard);
+
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'ArrowRight') nextCard();
+                if (e.key === 'ArrowLeft') prevCard();
+                if (e.key === ' ') {
+                    e.preventDefault();
+                    flashcard.click();
+                }
+                if (e.key === 'p' || e.key === 'P') {
+                    e.preventDefault();
+                    playAudio();
+                }
+            });
+
+            currentList = getDisplayList();
+            renderCard();
+            console.log(`✨ Fuga学员专属 · A2 第5单元 闪卡已加载 (共 ${RAW_WORDS.length} 项) ✅`);
+            console.log(`📁 音频文件命名格式: 第5单元单词表 - segment 1.mp3 ~ ${RAW_WORDS.length}.mp3`);
+        }
+
+        init();
+    </script>
+</body>
+</html>
